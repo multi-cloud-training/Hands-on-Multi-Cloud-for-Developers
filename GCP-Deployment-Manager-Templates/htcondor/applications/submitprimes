@@ -1,0 +1,6 @@
+Universe   = vanilla
+Executable = primes
+Arguments  = 400000
+Log        = /var/log/condor/jobs/stats.log
+should_transfer_files = IF_NEEDED
+Queue 100
