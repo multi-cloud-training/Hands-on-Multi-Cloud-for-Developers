@@ -1,4 +1,5 @@
-# Multi-Cloud Open DC/OS on AWS with Terraform
+# Multi-Cloud Testing on AWS and Azure with Terraform
+
 # AWS and Azure
 
 Requirements
