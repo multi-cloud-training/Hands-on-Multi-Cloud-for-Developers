@@ -1,0 +1,2 @@
+# Configuration variables
+aws_hosted_zone = "roooms.uk." # needs to include final period
