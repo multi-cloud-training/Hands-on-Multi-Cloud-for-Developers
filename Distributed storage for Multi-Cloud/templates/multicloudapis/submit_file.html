@@ -1,0 +1,11 @@
+{% extends 'multicloudapis/index.html' %}
+
+{% block content %}
+    <form action="{% url 'upload' %}" method="POST">
+        {% csrf_token %}
+         <input type="text" name="file_location" placeholder="Enter the file path"/>
+         <input type="submit" value="Submit" id="submitbutton" />
+    </form>
+    </br>
+
+{% endblock content %}

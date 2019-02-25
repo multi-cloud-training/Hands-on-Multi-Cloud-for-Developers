@@ -1,0 +1,14 @@
+{% extends 'multicloudapis/index.html' %}
+
+{% block content %}
+    <div class="wrapper">
+         <input type="file" id="uploadfile" />
+    </div>
+    </br>
+    <form role="form" action="{% url 'home' %}" method="POST">
+        {% csrf_token %}
+        <button type="submit" >Upload File</button>
+    </form>
+    <h2>{{ message }}</h2>
+
+{% endblock content %}
