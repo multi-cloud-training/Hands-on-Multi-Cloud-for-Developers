@@ -1,5 +1,6 @@
 #Spinnaker setup in AWS
 
+https://www.spinnaker.io/setup/install/providers/aws/
 
 Creates a spinnaker environment including a single debian based spinnaker release that can deploy to a sub account(s).  The sub accounts will be setup with an IAM role granting the "Master" account permissions to assume that role.  Spinnaker/Halyard instance will be built in a new VPC in the "master" account and granted access to assume any role.  This will allow it to assume the "sub account" roles. 
 
