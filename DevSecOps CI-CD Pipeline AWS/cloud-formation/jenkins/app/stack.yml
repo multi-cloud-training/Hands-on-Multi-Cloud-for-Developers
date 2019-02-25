@@ -1,0 +1,11 @@
+stack:
+    name: jenkins-app
+    system-name: DSO
+    master-template: main.yml
+    parameters:
+        System: {{env:SYSTEM_NAME}}
+        Region: {{env:AWS_REGION:us-east-1}}
+        Environment: {{env:ENVIRONMENT:shared}}
+        ProvisioningBucket: {{env:BUCKET_NAME}}
+    initializers:
+        - etc-init.d-jenkins.sh  
