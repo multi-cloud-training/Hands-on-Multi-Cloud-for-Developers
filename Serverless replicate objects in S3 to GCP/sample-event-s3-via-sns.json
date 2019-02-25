@@ -1,0 +1,20 @@
+{
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:ap-northeast-1:123456789012:source-s3-bucket-notification:b20fa9da-0783-49e3-bc96-a132d3b0c8bb",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "313b1eef-7faf-5414-9ea8-4f97a0d595ec",
+        "TopicArn": "arn:aws:sns:ap-northeast-1:123456789012:source-s3-bucket-notification",
+        "Subject": "Amazon S3 Notification",
+        "Message": "{\"Records\":[{\"eventVersion\":\"2.0\",\"eventSource\":\"aws:s3\",\"awsRegion\":\"ap-northeast-1\",\"eventTime\":\"2017-04-25T05:23:06.582Z\",\"eventName\":\"ObjectCreated:Put\",\"userIdentity\":{\"principalId\":\"AWS:AIDAI45X5DG2ZOQQHBSP4\"},\"requestParameters\":{\"sourceIPAddress\":\"10.0.191.67\"},\"responseElements\":{\"x-amz-request-id\":\"6A252D214640F19A\",\"x-amz-id-2\":\"pnzZkPoRMIoMamgLMIHxydsGEQ+vz6SrBXFbBjl+krb0/mWRVA0MQihAK838ffhLxUMsD7ogggo=\"},\"s3\":{\"s3SchemaVersion\":\"1.0\",\"configurationId\":\"SourceS3BucketNotification\",\"bucket\":{\"name\":\"s3-multicloud-backup-staging\",\"ownerIdentity\":{\"principalId\":\"A391FIDWR49810\"},\"arn\":\"arn:aws:s3:::s3-multicloud-backup-staging\"},\"object\":{\"key\":\"banners/1000/1000.jpg\",\"size\":3608,\"eTag\":\"da56d78cd72a9bf453cd6f88a8c277cd\",\"sequencer\":\"0058FEDD3A85664A38\"}}}]}",
+        "Timestamp": "2017-04-25T05:23:06.646Z",
+        "SignatureVersion": "1",
+        "Signature": "jX3Oqmg8Alkbr0jPbNj/7q+WIlCJBYQ+SHoC28/g1tXe/1S95QERAHnu13L/nPeHqGadnNQOoFfKjPQ+ZIkMOQH4+mYH6VgeLUDhGaaZBM7lAwIgvZ1w6ZpNynbWPypt9tNs8nazoXuOJ38ast94Ej0vCT4LDVWPY0JGI77Q3qhhr5dJEKfTmJN/6V8Tb6/4qaY9j2QgPhhMWPcdkwSSEdJDHbwmg6ae2CyqQZLngGjTsWcgfuObDD9uI8W0saiqdRho4ElmEfeGtxcJgj1UUHEfBXmapTmXKGcYX0S+Nchl0ktmXUr55l/i/KdunyqAiol/W0YbWgFB9eyBYWoOgQ==",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}

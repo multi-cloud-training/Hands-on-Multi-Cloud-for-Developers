@@ -1,0 +1,33 @@
+{
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:ap-northeast-1:123456789012:retry-s3-replicator-dev:5b445da2-4840-4c22-83d8-eac193598b83",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "230872ed-8de1-5b09-9499-202303f9211f",
+        "TopicArn": "arn:aws:sns:ap-northeast-1:214219211678:s3-multicloud-backup-retry-staging",
+        "Subject": null,
+        "Message": "{\"Records\":[{\"EventSource\":\"aws:sns\",\"EventVersion\":\"1.0\",\"EventSubscriptionArn\":\"arn:aws:sns:ap-northeast-1:123456789012:source-s3-bucket-notification:cfaf5973-d491-4150-bf40-322091325340\",\"Sns\":{\"Type\":\"Notification\",\"MessageId\":\"73af1f7c-7886-519c-ba99-4db2f5942f38\",\"TopicArn\":\"arn:aws:sns:ap-northeast-1:123456789012:source-s3-bucket-notification\",\"Subject\":\"Amazon S3 Notification\",\"Message\":\"{\\\"Records\\\":[{\\\"eventVersion\\\":\\\"2.0\\\",\\\"eventSource\\\":\\\"aws:s3\\\",\\\"awsRegion\\\":\\\"ap-northeast-1\\\",\\\"eventTime\\\":\\\"2018-01-09T09:26:42.817Z\\\",\\\"eventName\\\":\\\"ObjectCreated:CompleteMultipartUpload\\\",\\\"userIdentity\\\":{\\\"principalId\\\":\\\"AWS:AIDAIKR4QRE4EIBRIHDFU\\\"},\\\"requestParameters\\\":{\\\"sourceIPAddress\\\":\\\"122.220.193.90\\\"},\\\"responseElements\\\":{\\\"x-amz-request-id\\\":\\\"92E06102CB62CD05\\\",\\\"x-amz-id-2\\\":\\\"q88TkwOgxwPFOV+aTQbr55k1DW88IEfip/Orho+SKooKKP5d3p5Naf4CQ3celOr2dQK6lw7zjyI=\\\"},\\\"s3\\\":{\\\"s3SchemaVersion\\\":\\\"1.0\\\",\\\"configurationId\\\":\\\"S3Notification\\\",\\\"bucket\\\":{\\\"name\\\":\\\"s3-multicloud-backup-staging\\\",\\\"ownerIdentity\\\":{\\\"principalId\\\":\\\"A391FIDWR49810\\\"},\\\"arn\\\":\\\"arn:aws:s3:::s3-multicloud-backup-staging\\\"},\\\"object\\\":{\\\"key\\\":\\\"banners/1000/1000.jpg\\\",\\\"size\\\":104857600,\\\"eTag\\\":\\\"0c4af570340e15f2be9924e70bc34257-13\\\",\\\"sequencer\\\":\\\"005A548AD13F1DA687\\\"}}}]}\",\"Timestamp\":\"2018-01-09T09:26:42.933Z\",\"SignatureVersion\":\"1\",\"Signature\":\"de5fTcbGDiP/zXrneD6qCus876e6X5SSK0kF5dcFGP3K8yPVjA9/zgibHM29AvO5DRzIrsno3PZ8weQmt0QMuelCPrfw+GVw987ivP5ZTvACudge2yUSiJKB8GKO3/bm0crg/jECLhNua9KUUy+FkPqWSsX17sZul2u/d1wlojA3LUyIwCkg+hnMsd+w+etavmi8zeN5vHiFGBW2ZeRHimMTRXKCR/usIpSQon8uyJumtAB2RnRUeUXovAAMjys4AGKAHhaozaeSqT3mfpPpVlUT8U69TL/NMTia+mUx+Z2r39qbh2ud6dsKungGmANWYn8lbKtUoCUB+vr4uqtw0A==\",\"MessageAttributes\":{}}}]}",
+        "Timestamp": "2018-01-09T09:31:04.110Z",
+        "SignatureVersion": "1",
+        "Signature": "VeUwrBd7E4N1u4G/pWo4x38Om0BWQyKcsvZ/OmNqsTUgC43TcgyzacztRwIJrJe5W2ecqQutwU3iWdpy0Tl7Wq9o9dbUsa4V/8bg/98dnB6+nhoB6DJId1AvY6qibL0x9vjLjyCwA7afPtvCx0ZmwT2Hy142HL8viSXjUDXjOwkOJiGqXnzuddZi1+8Swj/u75oNDoUQNIdRqiWu/1ds4fsSJCx4TWAX68Q8r8PoAUR3+4FdlZJWH0pk2iRpKJThJEmxUhShJLgaXwaPE3L6LZZ49t3OF/KBFEk8qQMJYb11aS/efAcnMDw82ExRcvwtTeKSIprmSrpd3Cq1gt1IPw==",
+        "MessageAttributes": {
+          "RequestID": {
+            "Type": "String",
+            "Value": "34649ea6-f51f-11e7-b7e9-e9b7f865d4cf"
+          },
+          "ErrorCode": {
+            "Type": "String",
+            "Value": "200"
+          },
+          "ErrorMessage": {
+            "Type": "String",
+            "Value": "RequestId: 34649ea6-f51f-11e7-b7e9-e9b7f865d4cf Process exited before completing request"
+          }
+        }
+      }
+    }
+  ]
+}

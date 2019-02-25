@@ -1,0 +1,11 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - 'cd src && npm install'
+  build:
+    commands:
+      - 'aws cloudformation package --template-file ../deploy/template/production.yml --s3-bucket sam-artifact.ap-northeast-1 --output-template-file template.package.yml'
+artifacts:
+  files:
+    - 'src/template.package.yml'

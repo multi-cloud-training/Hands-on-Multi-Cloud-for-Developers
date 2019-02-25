@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: 'A serverless application that replicate all objects in S3 bucket to Google Cloud Storage.'
+
+Resources:
+  RetrySNSTopic:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      DisplayName: 's3mc-stg'
+      TopicName: 's3-multicloud-backup-retry-staging'
+  DLQ:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: 's3-multicloud-backup-dlq-staging'
+      MessageRetentionPeriod: 1209600
+
+  S3MulticloudBackupStagingFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: 'index.handler'
+      Runtime: 'nodejs6.10'
+      CodeUri: '../../src'
+      FunctionName: 's3-multicloud-backup-staging'
+      Role: 'arn:aws:iam::123456789012:role/LambdaS3MulticloudBackupStaging'
+      MemorySize: 256
+      Timeout: 30
+      Events:
+        ObjectUploaded:
+          Type: 'SNS'
+          Properties:
+            Topic: 'arn:aws:sns:ap-northeast-1:123456789012:s3-multicloud-backup-staging'
+      DeadLetterQueue:
+        Type: 'SNS'
+        TargetArn: !Ref RetrySNSTopic
+      Environment:
+        Variables:
+          SKIP_KEY_REGEX: '^(_sandbox|test)'
+          GCS_BUCKET: 's3-multicloud-backup-staging'
+          PROJECT_ID: 'sprint-cab-94510'
+          RETRY_SNS_TOPIC_ARN: !Ref RetrySNSTopic
+          GC_CREDENTIAL: '!!! Set your credential for GCS !!!'
+
+  S3MulticloudBackupRetryStagingFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: 'index.handler'
+      Runtime: 'nodejs6.10'
+      CodeUri: '../../src'
+      FunctionName: 's3-multicloud-backup-retry-staging'
+      Role: 'arn:aws:iam::123456789012:role/LambdaS3MulticloudBackupStaging'
+      MemorySize: 2048
+      Timeout: 90
+      Events:
+        BackupFailed:
+          Type: 'SNS'
+          Properties:
+            Topic: !Ref RetrySNSTopic
+      DeadLetterQueue:
+        Type: 'SQS'
+        TargetArn: !GetAtt DLQ.Arn
+      Environment:
+        Variables:
+          SKIP_KEY_REGEX: '^(_sandbox|test)'
+          GCS_BUCKET: 's3-multicloud-backup-staging'
+          PROJECT_ID: 'sprint-cab-94510'
+          RETRY_SNS_TOPIC_ARN: !Ref RetrySNSTopic
+          GC_CREDENTIAL: '!!! Set your credential for GCS !!!'
