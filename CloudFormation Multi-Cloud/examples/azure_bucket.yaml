@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Example stack that deploys AWS, Azure and Google Cloud resources.
+
+Transform:
+- MultiCloud
+
+Resources:
+
+    myAzureResourceGroup:
+        Type: Azure::Resource::ResourceGroup
+        Properties:
+            Name: myAzureResGroupForStorage
+            Location: westus
+
+    myAzureStorageAccount:
+        Type: Azure::Storage::StorageAccount
+        Properties:
+            Name: cfnmulticlouddemo
+            ResourceGroupName: !GetAtt myAzureResourceGroup.Name
+            Location: !GetAtt myAzureResourceGroup.Location
+            Kind: StorageV2
+            Sku:
+                Name: Standard_LRS

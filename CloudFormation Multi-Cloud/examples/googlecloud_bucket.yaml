@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Example stack that deploys AWS, Azure and Google Cloud resources.
+
+Transform:
+- MultiCloud
+
+Resources:
+
+    myGoogleCloudBucket:
+        Type: GoogleCloud::Storage::Bucket
+        Properties:
+            Name: mybucketmulticloudcfn
+            Project: cfnmulticlouddemo
+            Location: australia-southeast1
+            StorageClass: REGIONAL
+            Versioning:
+                Enabled: true

@@ -1,0 +1,197 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: AWS CloudFormation to set up a custom CloudFormation resource with Lambda.
+
+Parameters:
+
+    S3Bucket:
+        Description: The name of the bucket that contains the Lambda source (leave blank to use latest)
+        Type: String
+        Default: ''
+    
+    S3Key:
+        Description: The key of the ZIP package within the bucket (leave blank to use latest)
+        Type: String
+        Default: ''
+    
+    AzureCredentialsSecretName:
+        Description: The name of the Secrets Manager secret for the Azure credentials
+        Type: String
+        Default: MultiCloudAzureCredentials
+    
+    AzureCredentialSubscriptionId:
+        Description: The Subscription ID of your Azure account
+        Type: String
+        NoEcho: true
+    
+    AzureCredentialDirectoryId:
+        Description: The Directory ID of your Azure account
+        Type: String
+        NoEcho: true
+    
+    AzureCredentialAppId:
+        Description: The App ID used to authenticate to Azure
+        Type: String
+        NoEcho: true
+    
+    AzureCredentialAppPassword:
+        Description: The App Secret/Password used to authenticate to Azure
+        Type: String
+        NoEcho: true
+    
+    GoogleCloudCredentialsSecretName:
+        Description: The name of the Secrets Manager secret for the Google Cloud credentials
+        Type: String
+        Default: MultiCloudGoogleCloudCredentials
+    
+    GoogleCloudCredentialsJson:
+        Description: The JSON file contents used to authenticate to Google Cloud
+        Type: String
+        NoEcho: true
+
+Conditions:
+
+    S3Defined: !Not [ !Equals [ '', !Ref S3Bucket ] ]
+
+Metadata:
+
+    AWS::CloudFormation::Interface:
+        ParameterGroups:
+          - Label:
+                default: "Deployment Configuration"
+            Parameters:
+              - S3Bucket
+              - S3Key
+              - AzureCredentialsSecretName
+              - GoogleCloudCredentialsSecretName
+          - Label:
+                default: "Azure Credentials"
+            Parameters:
+              - AzureCredentialSubscriptionId
+              - AzureCredentialDirectoryId
+              - AzureCredentialAppId
+              - AzureCredentialAppPassword
+          - Label:
+                default: "Google Cloud Credentials"
+            Parameters:
+              - GoogleCloudCredentialsJson
+        ParameterLabels:
+            S3Bucket:
+                default: "S3 Bucket (leave blank to use latest)"
+            S3Key:
+                default: "S3 Key (leave blank to use latest)"
+            AzureCredentialsSecretName:
+                default: "Secret Name"
+            AzureCredentialSubscriptionId:
+                default: "Subscription ID"
+            AzureCredentialDirectoryId:
+                default: "Directory ID"
+            AzureCredentialAppId:
+                default: "App ID"
+            AzureCredentialAppPassword:
+                default: "App Password/Secret"
+            GoogleCloudCredentialsJson:
+                default: "Contents of JSON file for service account"
+
+Resources:
+
+    AzureCredentials:
+        Type: AWS::SecretsManager::Secret
+        Properties:
+            Name: !Ref AzureCredentialsSecretName
+            Description: The Azure credentials for the Multi Cloud transform
+            SecretString: !Sub '{
+                    "subscriptionId":"${AzureCredentialSubscriptionId}",
+                    "directoryId":"${AzureCredentialDirectoryId}",
+                    "appId":"${AzureCredentialAppId}",
+                    "appPassword":"${AzureCredentialAppPassword}"
+                }'
+
+    GoogleCloudCredentials:
+        Type: AWS::SecretsManager::Secret
+        Properties:
+            Name: !Ref GoogleCloudCredentialsSecretName
+            Description: The Google Cloud credentials for the Multi Cloud transform
+            SecretString: !Ref GoogleCloudCredentialsJson
+
+    TransformFunction:
+        Type: AWS::Lambda::Function
+        Properties:
+            Code:
+                S3Bucket: !If
+                    - S3Defined
+                    - !Ref S3Bucket
+                    - !Sub 'ianmckay-${AWS::Region}'
+                S3Key: !If
+                    - S3Defined
+                    - !Ref S3Key
+                    - 'multicloud/app.zip'
+            Environment:
+                Variables:
+                    AZURE_SECRET_ID: !Ref AzureCredentials
+                    GOOGLE_CLOUD_SECRET_ID: !Ref GoogleCloudCredentials
+            Handler: index.handler
+            Role: !GetAtt 'LambdaExecutionRole.Arn'
+            Runtime: python3.6
+            Timeout: 600
+    
+    LambdaExecutionRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Principal:
+                        Service:
+                          - lambda.amazonaws.com
+                    Action:
+                      - sts:AssumeRole
+            Path: /
+            Policies:
+              - PolicyName: root
+                PolicyDocument:
+                    Version: '2012-10-17'
+                    Statement:
+                      - Effect: Allow
+                        Action:
+                          - logs:CreateLogGroup
+                          - logs:CreateLogStream
+                          - logs:PutLogEvents
+                        Resource: arn:aws:logs:*:*:*
+                      - Effect: Allow
+                        Action:
+                          - secretsmanager:GetSecretValue
+                        Resource:
+                          - !Ref AzureCredentials
+                          - !Ref GoogleCloudCredentials
+
+    TransformFunctionPermissions:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: 'lambda:InvokeFunction'
+            FunctionName: !GetAtt TransformFunction.Arn
+            Principal: 'cloudformation.amazonaws.com'
+    
+    MultiCloudTransform:
+        Type: AWS::CloudFormation::Transform
+        Properties:
+            Name: !Sub '${AWS::AccountId}::MultiCloud'
+            Description: Adds support for Azure and Google Cloud resources
+            RoutingTable:
+                '*': 1
+            Versions:
+              - VersionName: 1
+                Description: Version 1
+                FunctionName: !GetAtt TransformFunction.Arn
+            ExecutionPolicy:
+                Version: '2012-10-17'
+                Id: AllowThisAccount
+                Statement:
+                  - Sid: AllowExecution
+                    Effect: Allow
+                    Principal:
+                        AWS: !Sub '${AWS::AccountId}'
+                    Action:
+                      - 'cloudformation:*'
+                    Resource: !Sub 'arn:*:cloudformation:${AWS::Region}:${AWS::AccountId}:transform/MultiCloud'

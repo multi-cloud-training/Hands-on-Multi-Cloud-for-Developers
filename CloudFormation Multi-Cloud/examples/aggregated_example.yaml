@@ -1,0 +1,144 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Example stack that deploys AWS, Azure and Google Cloud resources.
+
+Transform:
+- MultiCloud
+
+Resources:
+
+    myAzureResourceGroup:
+        Type: Azure::Resource::ResourceGroup
+        Properties:
+            Name: myAzureResGroup
+            Location: westus
+
+    myAzureVirtualNetwork:
+        Type: Azure::Network::VirtualNetwork
+        Properties:
+            Name: myAzureVNet
+            ResourceGroupName: !GetAtt myAzureResourceGroup.Name
+            Location: !GetAtt myAzureResourceGroup.Location
+            AddressSpace:
+                AddressPrefixes:
+                    - '10.0.0.0/16'
+    
+    myAzureSubnet:
+        Type: Azure::Network::Subnet
+        Properties:
+            Name: myAzureSubnet
+            ResourceGroupName: !GetAtt myAzureResourceGroup.Name
+            VirtualNetworkName: !GetAtt myAzureVirtualNetwork.Name
+            AddressPrefix: '10.0.0.0/24'
+    
+    myAzureNetworkInterface:
+        Type: Azure::Network::NetworkInterface
+        Properties:
+            Name: myAzureNIC
+            ResourceGroupName: !GetAtt myAzureResourceGroup.Name
+            Location: !GetAtt myAzureResourceGroup.Location
+            IpConfigurations:
+                - Name: myIpConfig
+                  Subnet:
+                    Id: !GetAtt myAzureSubnet.Id
+
+    myAzureVirtualMachine:
+        Type: Azure::Compute::VirtualMachine
+        Properties:
+            Name: myAzureVm
+            ResourceGroupName: !GetAtt myAzureResourceGroup.Name
+            Location: !GetAtt myAzureResourceGroup.Location
+            OsProfile:
+                ComputerName: my-box
+                AdminUsername: myadminusername
+                AdminPassword: Super$ecret!!
+            HardwareProfile:
+                VmSize: Standard_DS1_v2
+            StorageProfile:
+                ImageReference:
+                    Publisher: Canonical
+                    Offer: UbuntuServer
+                    Sku: 16.04.0-LTS
+                    Version: latest
+            NetworkProfile:
+                NetworkInterfaces:
+                    - Id: !GetAtt myAzureNetworkInterface.Id
+
+    myGoogleCloudNetwork:
+        DependsOn:
+        - myAzureVirtualMachine
+        Type: GoogleCloud::Compute::Network
+        Properties:
+            Name: mynetwork
+            Project: cfnmulticlouddemo
+            Region: us-west2
+            Description: Sample Network
+            RoutingConfig:
+                RoutingMode: REGIONAL
+            AutoCreateSubnetworks: false
+
+    myGoogleCloudSubnetwork:
+        Type: GoogleCloud::Compute::Subnetwork
+        Properties:
+            Name: mysubnetwork
+            Project: cfnmulticlouddemo
+            Region: us-west2
+            Network: !GetAtt myGoogleCloudNetwork.Name
+            Description: Sample Subnetwork
+            PrivateIpGoogleAccess: false
+            EnableFlowLogs: false
+            IpCidrRange: "10.0.0.0/24"
+
+    myGoogleCloudInstance:
+        Type: GoogleCloud::Compute::Instance
+        Properties:
+            Name: my-gce-instance
+            Project: cfnmulticlouddemo
+            Zone: us-west2-a
+            MachineType: f1-micro
+            Disks:
+              - Boot: true
+                AutoDelete: true
+                InitializeParams:
+                    SourceImage:
+                        Project: debian-cloud
+                        Family: debian-9
+            NetworkInterfaces:
+              - Network: global/networks/default
+                Subnetwork:
+                    Project: cfnmulticlouddemo
+                    Region: us-west2
+                    Name: !GetAtt myGoogleCloudSubnetwork.Name
+                AccessConfigs:
+                  - Type: ONE_TO_ONE_NAT
+                    Name: External NAT
+            ServiceAccounts:
+              - Email: default
+                Scopes:
+                  - devstorage.read_write
+                  - logging.write
+
+    myAWSVPC:
+        DependsOn:
+        - myGoogleCloudInstance
+        Type: AWS::EC2::VPC
+        Properties:
+            CidrBlock: 10.0.0.0/16
+            EnableDnsSupport: true
+            EnableDnsHostnames: true
+    
+    myAWSSubnet:
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref myAWSVPC
+            CidrBlock: 10.0.0.0/24
+    
+    myAWSInstance: 
+        Type: AWS::EC2::Instance
+        Properties:
+            InstanceType: t2.small
+            ImageId: ami-08589eca6dcc9b39c
+            NetworkInterfaces: 
+              - AssociatePublicIpAddress: true
+                DeviceIndex: 0
+                SubnetId: !Ref myAWSSubnet

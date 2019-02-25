@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Example stack that deploys AWS, Azure and Google Cloud resources.
+
+Transform:
+- MultiCloud
+
+Resources:
+
+    myGoogleCloudQueue:
+        Type: GoogleCloud::PubSub::Topic
+        Properties:
+            Name: multicloudcfntopic
+            Project: cfnmulticlouddemo
