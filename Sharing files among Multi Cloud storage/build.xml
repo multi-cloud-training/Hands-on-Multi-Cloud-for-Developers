@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="MultiCloud" default="distjar">
+	<description>
+		Build file for MultiCloud library.
+	</description>
+
+	<!-- =========================================================================
+		properties
+		sets up compilation parameters and source and destination folders
+	========================================================================== -->
+
+	<property name="app.name" value="MultiCloud" />	
+
+	<property name="src.dir" value="./src" />
+	<property name="lib.dir" value="./lib" />
+	<property name="build.dir" value="./bin" />	
+	<property name="doc.dir" value="./doc" />	
+	<property name="jar.dir" value="./jar" />
+	<property name="tmp.dir" value="./tmp" />
+
+	<property name="bin.jar.file" value="MultiCloud-src.jar" />
+	<property name="bin.jar.file.compact" value="MultiCloud.jar" />
+
+	<property name="main-class" value="cz.zcu.kiv.multicloud.MultiCloud" />
+	<path id="classpath">
+		<pathelement location="${build.dir}" />
+		<pathelement location="${lib.dir}" />
+	</path>
+
+	<!-- =========================================================================
+		target: clean
+		deletes all created files and documentation
+		keeps the JAR file
+	========================================================================== -->
+	<target name="clean">
+		<delete dir="${build.dir}" />
+		<delete dir="${bin.dir}" />
+		<delete dir="${doc.dir}" />		
+	</target>
+
+	<!-- =========================================================================
+		target: compile
+		compiles the library
+		source files are compiled and saved in the build folder
+	========================================================================== -->
+	<target name="compile" >
+		<mkdir dir="${build.dir}" />
+		<javac srcdir="${src.dir}" destdir="${build.dir}" compiler="javac1.7">
+			<classpath refid="classpath" />
+		</javac>
+	</target>
+
+	<!-- =========================================================================
+		target: run
+		compiles and runs the library
+	========================================================================== -->
+	<target name="run" depends="compile">
+		<java classname="${main-class}" fork="true" dir="${build.dir}">
+			<classpath refid="classpath" />
+		</java>
+	</target>
+
+	<!-- =========================================================================
+		target: distjar
+		creates JAR file of the library and saves it to JAR folder
+	========================================================================== -->
+	<target name="distjar" depends="compile, javadoc">
+		<mkdir dir="${jar.dir}" />
+		<mkdir dir="${tmp.dir}"/>
+		<copy todir="${tmp.dir}">
+			<fileset dir="${build.dir}" />
+		</copy>
+		<delete dir="${tmp.dir}/test" />
+		<copy todir="${tmp.dir}/doc">
+			<fileset dir="${doc.dir}"/>
+		</copy>
+		<copy todir="${tmp.dir}/src">
+			<fileset dir="${src.dir}"/>
+		</copy>
+		<delete dir="${tmp.dir}/src/test" />
+
+		<!-- creates JAR file -->
+		<taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" classpath="${lib.dir}/jarjar-1.4.jar"/>
+		<jarjar destfile="${jar.dir}/${bin.jar.file}" basedir="${tmp.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="${main-class}" />
+			</manifest>
+			<rule pattern="org.apache.**" result="xorg.apache.@1"/>
+			<zipgroupfileset dir="${lib.dir}">
+				<exclude name="*.txt" />
+				<exclude name="jarjar*" />
+			</zipgroupfileset>
+		</jarjar>
+		
+		<delete dir="${tmp.dir}/doc" />
+		<delete dir="${tmp.dir}/src" />
+
+		<!-- creates JAR file -->		
+		<jarjar destfile="${jar.dir}/${bin.jar.file.compact}" basedir="${tmp.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="${main-class}" />
+			</manifest>
+			<rule pattern="org.apache.**" result="xorg.apache.@1"/>
+			<zipgroupfileset dir="${lib.dir}">
+				<exclude name="*.txt" />
+				<exclude name="jarjar*" />
+			</zipgroupfileset>
+		</jarjar>
+
+		<delete dir="${tmp.dir}" />
+	</target>
+	
+	<!-- =========================================================================
+		target: javadoc
+		compiles the JavaDoc documentation for the library
+	========================================================================== -->
+	<target name="javadoc">
+		<mkdir dir="${doc.dir}" />				
+			<javadoc destdir="${doc.dir}" docencoding="utf-8" encoding="utf-8" charset="utf-8" access="private" packagenames="cz.zcu.kiv.*">
+				<fileset dir="${src.dir}/cz" includes="**/*.java" />
+			</javadoc>		
+	</target>
+
+</project>
