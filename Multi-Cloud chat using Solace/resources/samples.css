@@ -1,0 +1,104 @@
+body {
+    font-family:      HelveticaNeue, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    margin:           0px;
+}
+
+.logo img {
+    width:            144px;
+    height:           72px;
+    margin-left:      10px;
+}
+
+.banner {
+    color:            white;
+    background-color: #3d3d3d;
+    padding:          8px;
+}
+
+.banner-interior {
+}
+
+.banner-heading {
+    font-weight:      bold;
+    font-size:        185%;
+    margin:           35px 0px 0px 40px;
+    display:          inline-block;
+    vertical-align:   top;
+}
+
+.doc-body {
+    padding:          30px;
+    max-width:        1000px;
+    margin:           auto;
+    color:            #3d3d3d;
+}
+
+.button-error {
+    color:            white;
+    background:       rgb(221, 66, 66);
+}
+
+label {
+    margin-right:     15px;
+}
+
+.button-aws {
+    background: #d58512;
+    color: #fff;
+    width:600px;
+}
+
+.banner-aws {
+    background-color: #d58512;
+}
+
+.button-gcp {
+    background: rgb(28, 184, 65); 
+    color: #fff;
+    width:600px;
+}
+
+.banner-gcp {
+    background-color:  rgb(28, 184, 65); 
+}
+
+
+.button-azure {
+    background: #5597d1; 
+    color: #fff;
+    width:600px;
+}
+
+.banner-azure {
+    background-color: #5597d1; 
+}
+
+#chat-area {
+    display: none;
+  }
+  
+#chat-box {
+    width: 50%;
+    border: 1px solid black;
+    height:500px;
+  }
+  
+  .chat-log{
+    color: lightgray;
+    font-style: italic;
+  }
+  
+.chat{
+    color: black;
+}
+
+#cloud-icon-banner {
+    font-weight: normal;
+}
+
+.mrow {
+    height: 100%;
+    overflow-y: hidden;
+    margin: 0px;
+    padding: 0px;
+}
