@@ -1,0 +1,14 @@
+haikunator==2.1.0
+requests==2.11
+azure==2.0.0rc6
+boto3==1.4.0
+google-cloud==0.21.0
+cryptography==1.4
+Fabric3==1.12.post1
+Jinja2==2.8
+PyYAML==3.12
+terminaltables==3.1.0
+apache-libcloud==1.5
+click==6.7
+click-spinner==0.1.6
+click-didyoumean==0.0.3

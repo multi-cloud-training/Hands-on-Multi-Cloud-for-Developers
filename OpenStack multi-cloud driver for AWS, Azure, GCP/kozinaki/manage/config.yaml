@@ -1,0 +1,22 @@
+templates:
+    base_dir: 'templates'
+    providers: 'templates/providers'
+
+nodes:
+    prefix: 'aw_node'
+    commands: ['create', 'delete', 'list', 'show']
+    services:
+        nova:
+            template: 'templates/nova_base.conf'
+            dir_dest: '/etc/nova/'
+        neutron:
+            template: 'templates/ovs.conf'
+            dir_dest: '/etc/neutron/'
+
+services:
+    prefix: 'aw_service'
+    systemd_dir: '/usr/lib/systemd/system/'
+    commands: ['start', 'stop', 'enable', 'disable', 'restart', 'status']
+    templates:
+        nova: 'templates/nova_systemd_service.conf'
+        neutron: 'templates/ovs_systemd_service.conf'

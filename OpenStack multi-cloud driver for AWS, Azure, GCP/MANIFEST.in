@@ -1,0 +1,4 @@
+include README.md
+include kozinaki/manage/config.yaml
+include kozinaki/manage/providers.json
+recursive-include kozinaki/manage/templates *
