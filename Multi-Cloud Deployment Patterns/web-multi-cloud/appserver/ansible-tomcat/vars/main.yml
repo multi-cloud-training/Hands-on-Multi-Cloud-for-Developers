@@ -1,0 +1,34 @@
+---
+tomcat_supported_platforms:
+  - Archlinux
+  - Debian
+  - RedHat
+
+tomcat_supported_distributions:
+  - Archlinux
+  - Ubuntu
+  - CentOS
+  - RedHat
+  - OracleLinux
+
+# filename of Tomcat redistributable package
+tomcat_redis_filename: apache-tomcat-{{ tomcat_version }}.tar.gz
+
+# abstract Tomcat major version
+tomcat_version_major: "{{ tomcat_version|truncate(1, True, '') }}"
+
+# instances base directory
+tomcat_instance_dirs:
+  - conf
+  - logs
+  - webapps
+  - temp
+  - bin
+  - lib
+  - work
+
+# installation directory, denoted by environment variable CATALINA_HOME
+tomcat_env_catalina_home: "{{ tomcat_install_base }}/apache-tomcat-{{ tomcat_version }}"
+
+# gather role version for facts
+tomcat_role_version: "{{ lookup('file', role_path + '/VERSION') }}"

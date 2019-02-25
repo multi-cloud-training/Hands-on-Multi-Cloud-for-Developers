@@ -1,0 +1,57 @@
+---
+driver:
+  name: docker
+docker:
+  containers:
+    - name: ansible-role-apache-1604
+      image: ubuntu
+      image_version: 16.04
+      volume_mounts:
+        - ${MOLECULE_APTPROXY_PATH}:/etc/apt/apt.conf.d/00aptproxy
+
+ansible:
+  playbook: tests/playbook.yml
+  group_vars:
+    all:
+      apache_listen_ip: "127.0.0.1"
+      apache_listen_port: 81
+      apache_mods_enabled:
+        - access_compat.load # Allow, Deny directives
+        - authz_core.load # Require directive
+        - authz_host.load # Authz provider: local
+        - dir.conf
+        - dir.load # DirectoryIndex
+        - mpm_event.conf
+        - mpm_event.load # No MPM loaded
+        - proxy.load # For proxy_fcgi
+        - proxy_fcgi.load # PHP-FPM
+        - remoteip.load # Real IP from nginx
+        - rewrite.load # SEF
+        - status.load # Monitoring
+      apache_mods_disabled:
+        - alias.conf
+        - alias.load
+        - auth_basic.load
+        - authn_core.load
+        - authn_file.load
+        - authz_user.load
+        - autoindex.conf
+        - autoindex.load
+        - deflate.conf
+        - deflate.load
+        - env.load
+        - filter.load
+        - mime.conf
+        - mime.load
+        - negotiation.conf
+        - negotiation.load
+        - setenvif.conf
+        - setenvif.load
+
+      apache_create_vhosts: false
+      apache_vhosts_filename: "vhosts.conf"
+      apache_vhosts:
+        - servername: "example.com"
+          documentroot: "/var/www/vhosts/example.com"
+        - servername: "subdomain.example.com"
+          documentroot: "/var/www/vhosts/subdomain.example.com"
