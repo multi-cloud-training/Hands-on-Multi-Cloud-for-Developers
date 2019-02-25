@@ -1,0 +1,312 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Setting up your own private and secure VPN. You can read instructions
+  on our blog https://www.webdigi.co.uk/blog/2015/how-to-setup-your-own-private-secure-free-vpn-on-the-amazon-aws-cloud-in-10-minutes/
+  and you can follow video instructions on Youtube https://www.youtube.com/watch?v=fBBERp5CUgo
+
+Parameters:
+  Username:
+    Description: VPN Username
+    Type: String
+    MinLength: '1'
+    MaxLength: '255'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric
+      characters.
+  VPNPassword:
+    NoEcho: 'true'
+    Description: VPN Password (Min 4 characters)
+    Type: String
+    MinLength: '4'
+    MaxLength: '255'
+    ConstraintDescription: must contain atleast 4 characters.
+  VPNPhrase:
+    NoEcho: 'true'
+    Description: Passphrase for IPSEC PSK (Min 4 characters)
+    Type: String
+    MinLength: '4'
+    MaxLength: '255'
+    ConstraintDescription: must contain atleast 4 characters.
+  Size:
+    Description: Instance Type
+    Type: String
+    Default: Standard.VPN-t2.micro
+    AllowedValues:
+    - Standard.VPN-t2.micro
+    - High.Speed.VPN-t2.medium
+    - Ultra.High.Speed.VPN-m3.xlarge
+
+Mappings:
+  AWSInstanceType2Arch:
+    Standard.VPN-t2.micro:
+      InstanceType: t2.micro
+    High.Speed.VPN-t2.medium:
+      InstanceType: t2.medium
+    Ultra.High.Speed.VPN-m3.xlarge:
+      InstanceType: m3.xlarge
+  AWSRegionArch2AMI:
+    us-east-1:
+      HVM64: ami-80861296
+    us-east-2:
+      HVM64: ami-618fab04
+    us-west-1:
+      HVM64: ami-2afbde4a
+    us-west-2:
+      HVM64: ami-efd0428f
+    eu-west-1:
+      HVM64: ami-a8d2d7ce
+    eu-west-2:
+      HVM64: ami-f1d7c395
+    eu-west-3:
+      HVM64: ami-c1cf79bc
+    eu-central-1:
+      HVM64: ami-060cde69
+    ap-northeast-1:
+      HVM64: ami-afb09dc8
+    ap-northeast-2:
+      HVM64: ami-66e33108
+    ap-southeast-1:
+      HVM64: ami-8fcc75ec
+    ap-southeast-2:
+      HVM64: ami-96666ff5
+    sa-east-1:
+      HVM64: ami-4090f22c
+    ap-south-1:
+      HVM64: ami-c2ee9dad
+    ca-central-1:
+      HVM64: ami-b3d965d7
+
+Resources:
+  VPNServerInstance:
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Count: '1'
+        Timeout: PT15M
+    Properties:
+      ImageId:
+        Fn::FindInMap:
+        - AWSRegionArch2AMI
+        - Ref: AWS::Region
+        - HVM64
+      InstanceType:
+        Fn::FindInMap:
+        - AWSInstanceType2Arch
+        - Ref: Size
+        - InstanceType
+      SecurityGroups:
+      - Ref: VPNSecurityGroup
+      Tags:
+      - Key: Name
+        Value:
+          Ref: AWS::StackName
+      UserData:
+        Fn::Base64:
+          !Sub |
+              #!/bin/bash -x
+              
+              #Log Execution to Instance Console
+              exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+              apt-get update -y
+              #Passing variables to shell
+              YOUR_IPSEC_PSK=${VPNPhrase}
+              YOUR_USERNAME=${Username}
+              YOUR_PASSWORD=${VPNPassword}
+              #VPN 1 - L2TP IPSEC Server
+              wget https://git.io/vpnsetup -O vpnsetup.sh && sudo \
+              VPN_IPSEC_PSK=$YOUR_IPSEC_PSK \
+              VPN_USER=$YOUR_USERNAME \
+              VPN_PASSWORD=$YOUR_PASSWORD sh vpnsetup.sh
+
+              echo "Updating sysctl settings..."
+
+              if ! grep -qs "hwdsl2 VPN script" /etc/sysctl.conf; then
+                conf_bk "/etc/sysctl.conf"
+              cat >> /etc/sysctl.conf <<EOF
+
+              # Added by hwdsl2 VPN script
+              kernel.msgmnb = 65536
+              kernel.msgmax = 65536
+              kernel.shmmax = 68719476736
+              kernel.shmall = 4294967296
+
+              net.ipv4.ip_forward = 1
+              net.ipv4.tcp_syncookies = 1
+              net.ipv4.conf.all.accept_source_route = 0
+              net.ipv4.conf.default.accept_source_route = 0
+              net.ipv4.conf.all.accept_redirects = 0
+              net.ipv4.conf.default.accept_redirects = 0
+              net.ipv4.conf.all.send_redirects = 0
+              net.ipv4.conf.default.send_redirects = 0
+              net.ipv4.conf.lo.send_redirects = 0
+              net.ipv4.conf.$net_iface.send_redirects = 0
+              net.ipv4.conf.all.rp_filter = 0
+              net.ipv4.conf.default.rp_filter = 0
+              net.ipv4.conf.lo.rp_filter = 0
+              net.ipv4.conf.$net_iface.rp_filter = 0
+              net.ipv4.icmp_echo_ignore_broadcasts = 1
+              net.ipv4.icmp_ignore_bogus_error_responses = 1
+
+              net.core.wmem_max = 12582912
+              net.core.rmem_max = 12582912
+              net.ipv4.tcp_rmem = 10240 87380 12582912
+              net.ipv4.tcp_wmem = 10240 87380 12582912
+              EOF
+              fi
+
+              echo "Updating IPTables rules..."
+
+              # Check if IPTables rules need updating
+              ipt_flag=0
+              IPT_FILE="/etc/iptables.rules"
+              if ! grep -qs "hwdsl2 VPN script" "$IPT_FILE" \
+                || ! iptables -t nat -C POSTROUTING -s "$L2TP_NET" -o "$net_iface"-j MASQUERADE 2>/dev/null \
+                || ! iptables -t nat -C POSTROUTING -s "$XAUTH_NET" -o "$net_iface"-m policy --dir out --pol none -j MASQUERADE 2>/dev/null; then
+                ipt_flag=1
+              fi
+
+              # Add IPTables rules for VPN
+              if [ "$ipt_flag" = "1" ]; then
+                service fail2ban stop >/dev/null 2>&1
+                iptables-save > "$IPT_FILE.old-$SYS_DT"
+                iptables -I INPUT 1 -p udp --dport 1701 -m policy --dir in --pol none -j DROP
+                iptables -I INPUT 2 -m conntrack --ctstate INVALID -j DROP
+                iptables -I INPUT 3 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+                iptables -I INPUT 4 -p udp -m multiport --dports 500,4500 -j ACCEPT
+                iptables -I INPUT 5 -p udp --dport 1701 -m policy --dir in --pol ipsec -j ACCEPT
+                iptables -I INPUT 6 -p udp --dport 1701 -j DROP
+                iptables -I FORWARD 1 -m conntrack --ctstate INVALID -j DROP
+                iptables -I FORWARD 2 -i "$net_iface" -o ppp+ -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+                iptables -I FORWARD 3 -i ppp+ -o "$net_iface" -j ACCEPT
+                iptables -I FORWARD 4 -i ppp+ -o ppp+ -s "$L2TP_NET" -d "$L2TP_NET"-j ACCEPT
+                iptables -I FORWARD 5 -i "$net_iface" -d "$XAUTH_NET" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+                iptables -I FORWARD 6 -s "$XAUTH_NET" -o "$net_iface" -j ACCEPT
+                # Uncomment if you wish to disallow traffic between VPN clients themselves
+                # iptables -I FORWARD 2 -i ppp+ -o ppp+ -s "$L2TP_NET" -d "$L2TP_NET"-j DROP
+                # iptables -I FORWARD 3 -s "$XAUTH_NET" -d "$XAUTH_NET" -j DROP
+                iptables -A FORWARD -j DROP
+                iptables -t nat -I POSTROUTING -s "$XAUTH_NET" -o "$net_iface" -m policy --dir out --pol none -j MASQUERADE
+                iptables -t nat -I POSTROUTING -s "$L2TP_NET" -o "$net_iface" -j MASQUERADE
+                echo "# Modified by hwdsl2 VPN script" > "$IPT_FILE"
+                iptables-save >> "$IPT_FILE"
+
+                # Update rules for iptables-persistent
+                IPT_FILE2="/etc/iptables/rules.v4"
+                if [ -f "$IPT_FILE2" ]; then
+                  conf_bk "$IPT_FILE2"
+                  /bin/cp -f "$IPT_FILE" "$IPT_FILE2"
+                fi
+              fi
+
+              echo "Enabling services on boot..."
+
+              mkdir -p /etc/network/if-pre-up.d
+              cat > /etc/network/if-pre-up.d/iptablesload <<'EOF'
+              #!/bin/bash
+              iptables-restore < /etc/iptables.rules
+              exit 0
+              EOF
+
+              for svc in fail2ban ipsec xl2tpd; do
+                update-rc.d "$svc" enable >/dev/null 2>&1
+                systemctl enable "$svc" 2>/dev/null
+              done
+              if ! grep -qs "hwdsl2 VPN script" /etc/rc.local; then
+                if [ -f /etc/rc.local ]; then
+                  conf_bk "/etc/rc.local"
+                  sed --follow-symlinks -i '/^exit 0/d' /etc/rc.local
+                else
+                  echo '#!/bin/sh' > /etc/rc.local
+                fi
+              cat >> /etc/rc.local <<'EOF'
+
+              # Added by hwdsl2 VPN script
+              service ipsec start
+              service xl2tpd start
+              echo 1 > /proc/sys/net/ipv4/ip_forward
+              exit 0
+              EOF
+                if grep -qs raspbian /etc/os-release; then
+                  sed --follow-symlinks -i '/hwdsl2 VPN script/a sleep 15' /etc/rc.local
+                fi
+              fi
+
+              echo "Starting services..."
+
+              # Reload sysctl.conf
+              sysctl -e -q -p
+
+              # Update file attributes
+              chmod +x /etc/rc.local /etc/network/if-pre-up.d/iptablesload
+              chmod 600 /etc/ipsec.secrets* /etc/ppp/chap-secrets* /etc/ipsec.d/passwd*
+
+              # Apply new IPTables rules
+              iptables-restore < "$IPT_FILE"
+
+              # Restart services
+              service fail2ban restart 2>/dev/null
+              service ipsec restart 2>/dev/null
+              service xl2tpd restart 2>/dev/null
+
+              #VPN 2 - Setup PPTP Server
+              apt-get install pptpd -y
+              echo "localip 10.0.0.1" >> /etc/pptpd.conf
+              echo "remoteip 10.0.0.100-200" >> /etc/pptpd.conf
+              echo "$YOUR_USERNAME pptpd $YOUR_PASSWORD *" >> /etc/ppp/chap-secrets
+              echo "ms-dns 8.8.8.8" >> /etc/ppp/pptpd-options
+              echo "ms-dns 8.8.4.4" >> /etc/ppp/pptpd-options
+              service pptpd restart
+
+              echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+              sysctl -p
+              iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE && iptables-save
+
+              #Installing cfn helper scripts and signalling back to cloudformation
+              apt-get update -y
+              apt-get install -y python-setuptools
+              mkdir -p /opt/aws/bin
+              wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+              easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-latest.tar.gz
+              /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource VPNServerInstance 
+
+
+  VPNSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: VPN Security Groups
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '500'
+        ToPort: '500'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: udp
+        FromPort: '500'
+        ToPort: '500'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: udp
+        FromPort: '4500'
+        ToPort: '4500'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '1723'
+        ToPort: '1723'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: udp
+        FromPort: '1723'
+        ToPort: '1723'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: udp
+        FromPort: '1701'
+        ToPort: '1701'
+        CidrIp: 0.0.0.0/0
+Outputs:
+  VPNServerAddress:
+    Description: Use the IP as Server Address or VPN Host
+    Value:
+      Fn::GetAtt:
+        - VPNServerInstance
+        - PublicIp
+  WebdigiNotes:
+    Description: Allow upto 5 minutes after setup to connect. Please contact us at
+      https://www.webdigi.co.uk/blog/2015/how-to-setup-your-own-private-secure-free-vpn-on-the-amazon-aws-cloud-in-10-minutes/
+      for any help!
+    Value: Comments
