@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+
+
+<head>
+	<title>Garage App</title>
+
+</head>
+
+
+
+
+<body>
+	<h1>Cloud Hydra</h1>
+	<strong>Please Enter your user ID:</strong>
+	<div>
+       <input type="text" id="EnteredID" placeholder="Type your ID here" required>       
+    </div>
+
+    <div>
+    	<select id="actionsel" required onchange="checknewcar(this)">
+    	  <option value="VIEW">View</option>
+		  <option value="ADD">Add</option>		  
+		</select>
+
+		<select id="whatsel" required onchange="checknewcar(this)">
+		  <option value="CARS">Cars</option>
+		  <option value="GARAGE">Garage</option>
+		  <option value="RESERVATION">Reservation</option>
+		</select>
+
+
+
+		<div id="addcardiv" style="display: none">
+			<input type="text" id="NewcaruserID" placeholder="Enter the user's ID" required>
+			<input type="text" id="Newcarmodel" placeholder="Enter the model" required>
+		</div>
+
+		<div id="addgaragediv" style="display: none">
+			<input type="text" id="Newgaragename" placeholder="Enter the garage's name" required>
+			<input type="text" id="Newgaragecapacity" placeholder="Enter garage's capacity" required>
+		</div>
+
+
+
+
+
+		<button id="submit">Submit</button>
+    </div>
+    <div id="output"></div>
+
+
+	<script>
+		document.getElementById('submit').addEventListener('click', OnClick);
+
+		function OnClick()
+		{
+			const ip = 'http://35.241.8.114:8080/';
+			if(document.getElementById('actionsel').value == "VIEW" && document.getElementById('whatsel').value=="CARS") //Viewing Cars
+			{
+				
+				//var url = ip + "cars/" + document.getElementById('EnteredID').value;
+				var url = ip + "get-cars-by-user/" + document.getElementById('EnteredID').value;
+				fetch(url)
+			     .then((res) => res.json())
+			     .then((data) => {
+			       let output = '<h2>Your Cars</h2>';
+			       data.forEach(function(Car){//new
+			        output += `
+			           <div>
+			             <p>Car of id ${Car.ID}, and of Model ${Car.Model}</p>
+			           </div>
+			         `;
+			       });//newly uncommented
+			       document.getElementById('output').innerHTML = output;
+			     })
+			}
+
+			if(document.getElementById('actionsel').value == "VIEW" && document.getElementById('whatsel').value=="GARAGE") //Viewing Garages
+			{
+				
+				var url = ip + "garages/" + document.getElementById('EnteredID').value;
+				fetch(url)
+			     .then((res) => res.json())
+			     .then((data) => {
+			       let output = '<h2>Your Garages</h2>';
+			        output += `
+			           <div>
+			             <p>Garage of ID ${data.ID}, named "${data.Name}" and of maximum capacity ${data.MaxCars}</p>
+			           </div>
+			         `;
+			       //});
+			       document.getElementById('output').innerHTML = output;
+			     })
+			}
+
+			if(document.getElementById('actionsel').value == "VIEW" && document.getElementById('whatsel').value=="RESERVATION") 
+			{
+				
+				var url = ip + "reservations-by-user/" + document.getElementById('EnteredID').value;
+				fetch(url)
+			     .then((res) => res.json())
+			     .then((data) => {
+			       let output = '<h2>Your Reservations</h2>';
+			       data.forEach(function(Reservation){//new
+			        output += `
+			           <div>
+			             <p>Reservation number ${Reservation.ID}, in garage ${Reservation.GarageID}, for Car ${Reservation.CarID} starting at ${Reservation.StartTime} and ending at ${Reservation.EndTime}</p>
+			           </div>
+			         `;
+			       });//newly uncommented
+			       document.getElementById('output').innerHTML = output;
+			     })
+			}
+
+			if(document.getElementById('actionsel').value == "ADD" && document.getElementById('whatsel').value=="CARS")
+			{
+				var url = ip+"cars"
+				fetch(url, 
+				{
+			       method:'POST',
+			       
+			       body:JSON.stringify({UserID:Number(document.getElementById('NewcaruserID').value), Model:document.getElementById('Newcarmodel').value})
+			    })
+				.then((res) => res.json())
+     			.then((data) => console.log(data))
+			}
+
+
+			if(document.getElementById('actionsel').value == "ADD" && document.getElementById('whatsel').value=="GARAGE")
+			{
+				var url = ip+"garages"
+				fetch(url, 
+				{
+			       method:'POST',
+			       
+			       body:JSON.stringify({Name:document.getElementById('Newgaragename').value, MaxCars:Number(document.getElementById('Newgaragecapacity').value)})
+			    })
+				.then((res) => res.json())
+     			.then((data) => console.log(data))
+			}
+
+		}
+
+
+
+		function checknewcar(that)
+		{
+			if (document.getElementById('actionsel').value == "ADD" && document.getElementById('whatsel').value=="CARS") 
+			{            
+            document.getElementById("addcardiv").style.display = "block";
+        	} 
+	        else 
+	        {
+	            document.getElementById("addcardiv").style.display = "none";
+	        }
+
+			if (document.getElementById('actionsel').value == "ADD" && document.getElementById('whatsel').value=="GARAGE") 
+			{            
+            document.getElementById("addgaragediv").style.display = "block";
+        	} 
+	        else 
+	        {
+	            document.getElementById("addgaragediv").style.display = "none";
+	        }
+
+		}
+
+	</script>
+
+
+
+</body>
+</html>

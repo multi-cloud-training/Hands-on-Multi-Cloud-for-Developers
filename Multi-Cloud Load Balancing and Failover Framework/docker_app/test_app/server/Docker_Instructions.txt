@@ -1,0 +1,17 @@
+Using Docker
+
+To build the docker image:
+docker build -t garage .
+//Note: the docker build command looks for a Dockerfile, so the Dockerfile must be in the working directory.
+
+To run container:
+docker run -p 8888:8888 garage
+
+To stop a container:
+docker stop container-name
+
+To remove a running container:
+docker rm container-name
+
+To remove a docker image:
+docker rmi garage
