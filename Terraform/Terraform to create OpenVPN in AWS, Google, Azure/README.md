@@ -1,4 +1,4 @@
-# TerraformOpenVPN
+# Using Terraform to create OpenVPN setup
 Terraform scripts to create a quick OpenVPN server in the cloud (AWS, Google (GCP), more to come). Can be trivially modified to work with other cloud providers.
 
 ## Steps for use
