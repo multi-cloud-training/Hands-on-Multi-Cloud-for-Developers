@@ -1,0 +1,38 @@
+{
+  "name": "multiappx",
+  "version": "0.0.2",
+  "description": "This is Multi Cloud Sample application by Bootstrap.\r These build and deploy are using Azure DevOps.",
+  "keywords": [
+    "multicloud"
+  ],
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "build": "GIT_COMMIT_HASH=$(git rev-parse HEAD) gulp hoge",
+    "test": "nyc mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yamamoto42/multiappx.git"
+  },
+  "author": "Hiro Yamamoto",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yamamoto42/multiappx/issues"
+  },
+  "homepage": "https://github.com/yamamoto42/multiappx#readme",
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "express": "^4.16.3",
+    "jquery": "^3.3.1",
+    "popper.js": "^1.14.4"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-http": "^4.2.0",
+    "gulp": "^4.0.0",
+    "gulp-replace": "^1.0.0",
+    "mocha": "^5.2.0",
+    "nyc": "^13.1.0"
+  }
+}
