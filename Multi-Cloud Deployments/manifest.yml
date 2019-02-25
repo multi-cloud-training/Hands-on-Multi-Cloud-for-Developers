@@ -1,0 +1,6 @@
+applications:
+- name: multi-cloud
+  path: build/libs/multi-deployment-0.0.1-SNAPSHOT.war
+  memory: 1G
+  instances: 1
+  stack: cflinuxfs2
