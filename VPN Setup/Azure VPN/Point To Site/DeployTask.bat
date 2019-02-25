@@ -1,0 +1,1 @@
+schtasks /create /tn "Connect Azure VPN" /tr "%windir%\system32\WindowsPowerShell\v1.0\powershell.exe C:\VPN\ConnectAzureVPNByScript.ps1" /sc onstart /ru tombwu /rp "123456"

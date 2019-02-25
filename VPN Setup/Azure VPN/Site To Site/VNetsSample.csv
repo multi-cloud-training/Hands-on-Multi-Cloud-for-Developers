@@ -1,0 +1,5 @@
+Subscription,VNetName,AddressPrefix,GatewaySubnet
+Sub-Center,centerVnet,10.0.2.0/24,10.0.2.32/27
+Sub-West,westVnett,10.0.1.0/24,10.0.1.32/29
+Sub-East,eastVnet,10.0.3.0/24,10.0.3.128/28
+Sub-South,southVnet,192.168.0.0/24,192.168.0.160/28
